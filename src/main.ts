@@ -7,7 +7,6 @@ import { useResponseCache } from '@graphql-yoga/plugin-response-cache';
 
 import typeDefs from './graphql/types';
 import resolvers from './graphql/resolvers';
-import { execute, parse } from 'graphql';
 
 export interface ContextValue {
   token?: string | string[];
