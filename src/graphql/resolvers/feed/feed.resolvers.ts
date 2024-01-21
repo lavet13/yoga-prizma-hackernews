@@ -1,10 +1,4 @@
-import { Resolvers } from 'src/graphql/__generated__/types';
-
-type Link = {
-  id: string;
-  url: string;
-  description: string;
-};
+import { Resolvers, Link } from '../../__generated__/types';
 
 const links: Link[] = [
   {
