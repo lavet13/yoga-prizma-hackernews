@@ -87,10 +87,13 @@ const resolvers: Resolvers = {
           return (
             heros.find(hero => hero.appearsIn.includes(Episode.Newhope)) ?? null
           );
-
-        default:
-          return heros[1];
       }
+    },
+
+    heroById(_, args) {
+      const { id: findId } = args;
+
+      return heros.find(({ id }) => id === findId)!;
     },
 
     reviews() {
@@ -100,9 +103,7 @@ const resolvers: Resolvers = {
     search(_, args) {
       const { query } = args;
 
-      return allCharacters.filter(character =>
-        character!.name.includes(query ?? '')
-      );
+      return allCharacters.filter(character => character!.name.includes(query));
     },
   },
   Mutation: {
@@ -114,6 +115,13 @@ const resolvers: Resolvers = {
       console.log({ reviews });
 
       return review;
+    },
+    incrementCredits(_, args) {
+      const { id: findId } = args;
+
+      const foundHuman = heros.find(({ id }) => id === findId)!;
+
+      return ++(foundHuman as Human).totalCredits;
     },
   },
   Character: {
@@ -129,12 +137,14 @@ const resolvers: Resolvers = {
   },
   SearchResult: {
     __resolveType(character) {
-      if ((character as any).starships) {
+      if ((character as Human).starships) {
         return 'Human';
-      } else if ((character as any).primaryFunction) {
+      } else if ((character as Droid).primaryFunction) {
         return 'Droid';
-      } else {
+      } else if ((character as Starship).length) {
         return 'Starship';
+      } else {
+        throw new Error('Unable to determine character type!');
       }
     },
   },

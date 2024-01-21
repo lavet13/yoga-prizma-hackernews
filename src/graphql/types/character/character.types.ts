@@ -4,9 +4,10 @@ export default gql`
   union SearchResult = Human | Droid | Starship
 
   type Query {
-    hero(episode: Episode): Character
+    hero(episode: Episode = JEDI): Character
+    heroById(id: ID!): Character
     reviews: [Review!]!
-    search(query: String): [SearchResult!]!
+    search(query: String = ""): [SearchResult!]!
   }
 
   enum Episode {
@@ -32,6 +33,7 @@ export default gql`
 
   type Mutation {
     createReview(episode: Episode!, review: ReviewInput!): Review!
+    incrementCredits(id: ID!): Int!
   }
 
   type Starship {
