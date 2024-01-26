@@ -15,10 +15,22 @@ const resolvers: Resolvers = {
     feed: () => links,
   },
 
-  Link: {
-    id: parent => parent.id,
-    description: parent => parent.description,
-    url: parent => parent.url,
+  Mutation: {
+    postLink(root, args) {
+      const { url, description } = args;
+
+      let idCount = links.length;
+
+      const link: Link = {
+        id: `link-${idCount}`,
+        description,
+        url,
+      };
+
+      links.push(link);
+
+      return link;
+    },
   },
 };
 

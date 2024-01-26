@@ -4,7 +4,7 @@ export default gql`
   union SearchResult = Human | Droid | Starship
 
   type Query {
-    hero(episode: Episode = JEDI): Character
+    hero(episode: Episode = JEDI): [Character!]!
     heroById(id: ID!): Character
     reviews: [Review!]!
     search(query: String = ""): [SearchResult!]!

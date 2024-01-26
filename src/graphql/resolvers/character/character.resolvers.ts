@@ -25,7 +25,7 @@ const heros: (Human | Droid)[] = [
   {
     id: '1',
     name: 'R2-D2',
-    appearsIn: [Episode.Jedi],
+    appearsIn: [Episode.Jedi, Episode.Empire],
     friends: [friends[0]],
     primaryFunction: 'ANDROID STUFF',
   },
@@ -47,12 +47,12 @@ const isHuman = (character: Human | Starship | Droid): character is Human => {
 };
 
 const getCharactersAndFriends = (
-  hero: Human | Droid
+  hero: Human | Droid,
 ): (Human | Droid | Starship)[] => {
   if (!hero) return [];
 
   const friendsAndTheirFriends = hero.friends
-    .flatMap(friend => getCharactersAndFriends(friend as any))
+    .flatMap(friend => getCharactersAndFriends(friend as Human | Droid))
     .filter(Boolean) as (Human | Droid)[];
 
   return [
@@ -74,19 +74,13 @@ const resolvers: Resolvers = {
 
       switch (episode) {
         case Episode.Jedi:
-          return (
-            heros.find(hero => hero.appearsIn.includes(Episode.Jedi)) ?? null
-          );
+          return heros.filter(hero => hero.appearsIn.includes(Episode.Jedi));
 
         case Episode.Empire:
-          return (
-            heros.find(hero => hero.appearsIn.includes(Episode.Empire)) ?? null
-          );
+          return heros.filter(hero => hero.appearsIn.includes(Episode.Empire));
 
         case Episode.Newhope:
-          return (
-            heros.find(hero => hero.appearsIn.includes(Episode.Newhope)) ?? null
-          );
+          return heros.filter(hero => hero.appearsIn.includes(Episode.Newhope));
       }
     },
 
@@ -121,7 +115,11 @@ const resolvers: Resolvers = {
 
       const foundHuman = heros.find(({ id }) => id === findId)!;
 
-      return ++(foundHuman as Human).totalCredits;
+      if(isHuman(foundHuman)) {
+        return ++foundHuman.totalCredits;
+      }
+
+      throw new Error('This isn\'t a type of Human!');
     },
   },
   Character: {

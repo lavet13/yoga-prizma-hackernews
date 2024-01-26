@@ -3,7 +3,7 @@ import { createYoga } from 'graphql-yoga';
 import express from 'express';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { useResponseCache } from '@graphql-yoga/plugin-response-cache';
+// import { useResponseCache } from '@graphql-yoga/plugin-response-cache';
 
 import typeDefs from './graphql/types';
 import resolvers from './graphql/resolvers';
@@ -42,8 +42,7 @@ async function bootstrap() {
   if (import.meta.env.PROD) {
     app.listen(import.meta.env.VITE_PORT, () => {
       console.log(
-        `🚀 Query endpoint ready at http://localhost:${
-          import.meta.env.VITE_PORT
+        `🚀 Query endpoint ready at http://localhost:${import.meta.env.VITE_PORT
         }`
       );
     });
