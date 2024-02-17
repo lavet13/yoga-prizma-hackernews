@@ -1,0 +1,25 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                          Int    @id @default(autoincrement())
+  Post_Post_authorToUser      Post[] @relation("Post_authorToUser")
+  Post_Post_favoritedByToUser Post[] @relation("Post_favoritedByToUser")
+  Post_Post_colorToUser       Post?  @relation("Post_colorToUser")
+}
+
+model Post {
+  id                          Int   @id @default(autoincrement())
+  author                      Int
+  favoriteBy                  Int?
+  test                        Int   @unique
+  User_Post_authorToUser      User  @relation("Post_authorToUser", fields: [author], references: [id])
+  User_Post_favoritedByToUser User? @relation("Post_favoritedByToUser", fields: [favoriteBy], references: [id])
+  User_Post_color             User  @relation("Post_colorToUser", fields: [test], references: [id])
+}

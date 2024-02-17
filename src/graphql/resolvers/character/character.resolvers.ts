@@ -115,14 +115,15 @@ const resolvers: Resolvers = {
 
       const foundHuman = heros.find(({ id }) => id === findId)!;
 
-      if(isHuman(foundHuman)) {
+      if (isHuman(foundHuman)) {
         return ++foundHuman.totalCredits;
       }
 
-      throw new Error('This isn\'t a type of Human!');
+      throw Error("This isn't a type of Human!");
     },
   },
   Character: {
+    // doesn't resolve any fields inside, hence it's an interface
     __resolveType(character, context, info) {
       if ((character as any).starships) {
         return 'Human';
@@ -134,6 +135,8 @@ const resolvers: Resolvers = {
     },
   },
   SearchResult: {
+    // basically the same as interface, and also lsp doens't show any fields
+    // but interface does :-\
     __resolveType(character) {
       if ((character as Human).starships) {
         return 'Human';
@@ -144,6 +147,13 @@ const resolvers: Resolvers = {
       } else {
         throw new Error('Unable to determine character type!');
       }
+    },
+  },
+  Droid: {
+    appearsIn(parent) {
+      console.log({ appearsIn: parent.appearsIn });
+
+      return parent.appearsIn;
     },
   },
   Human: {
