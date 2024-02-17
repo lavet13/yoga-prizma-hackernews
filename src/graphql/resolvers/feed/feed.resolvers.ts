@@ -1,35 +1,24 @@
-import { Resolvers, Link } from '../../__generated__/types';
-
-const links: Link[] = [
-  {
-    id: 'link-0',
-    url: 'https://graphql-yoga.com',
-    description: 'The easiest way of setting up a GraphQL server',
-  },
-];
+import { Resolvers } from '../../__generated__/types';
 
 const resolvers: Resolvers = {
   Query: {
     info: () => `This is the API of a Hackernews Clone`,
 
-    feed: () => links,
+    feed: (_, __, context) => context.prisma.link.findMany(),
   },
 
   Mutation: {
-    postLink(root, args) {
+    async postLink(_, args, context) {
       const { url, description } = args;
 
-      let idCount = links.length;
+      const newLink = await context.prisma.link.create({
+        data: {
+          url,
+          description,
+        },
+      });
 
-      const link: Link = {
-        id: `link-${idCount}`,
-        description,
-        url,
-      };
-
-      links.push(link);
-
-      return link;
+      return newLink;
     },
   },
 };

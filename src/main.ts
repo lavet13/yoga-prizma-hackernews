@@ -8,10 +8,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import typeDefs from './graphql/types';
 import resolvers from './graphql/resolvers';
 import main from './script';
-
-export interface ContextValue {
-  token?: string | string[];
-}
+import { createContext } from './graphql/context';
+export { type ContextValue } from './graphql/context';
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -27,6 +25,7 @@ async function bootstrap() {
 
   const yoga = createYoga({
     schema,
+    context: createContext,
     graphqlEndpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT,
     graphiql: import.meta.env.MODE === 'development',
     landingPage: false,

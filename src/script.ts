@@ -30,11 +30,16 @@ const prisma = new PrismaClient();
 
 export default async function main() {
   try {
-    const allUsers = await prisma.user.findMany({
-      include: { posts: true },
+    const newLink = await prisma.link.create({
+      data: {
+        description: 'Fullstack tutorial for GraphQL',
+        url: 'www.howtographql.com',
+      },
     });
 
-    console.log({ allUsers });
+    const allLinks = await prisma.link.findMany();
+
+    console.log({ allLinks });
   } catch (err) {
     console.error(err);
   } finally {
