@@ -16,6 +16,7 @@ const config: CodegenConfig = {
   config: {
     mappers: {
       Link: '../../../node_modules/.prisma/client#Link as LinkModel',
+      Comment: '../../../node_modules/.prisma/client#Comment as CommentModel',
     },
     inputMaybeValue: 'undefined | T',
   },

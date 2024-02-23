@@ -3,16 +3,26 @@ import gql from 'graphql-tag';
 export default gql`
   type Query {
     info: String!
-    feed: [Link!]!
+    feed(filterNeedle: String, skip: Int, take: Int): [Link!]!
+    comment(id: ID!): Comment
+    link(id: ID!): Link
   }
 
   type Mutation {
     postLink(url: String!, description: String!): Link!
+    postCommentOnLink(linkId: ID!, body: String!): Comment!
   }
 
   type Link {
     id: ID!
     description: String!
     url: String!
+    comments: [Comment!]!
+  }
+
+  type Comment {
+    id: ID!
+    body: String!
+    link: Link
   }
 `;
