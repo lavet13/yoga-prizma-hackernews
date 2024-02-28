@@ -4,10 +4,20 @@ import { GraphQLError } from 'graphql';
 import { parseIntSafe } from '../../../utils/resolvers/parseIntSafe';
 import { Prisma } from '@prisma/client';
 import { applyConstraints } from '../../../utils/resolvers/applyConstraints';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { APP_SECRET } from '../../../auth';
 
 const resolvers: Resolvers = {
   Query: {
     info: () => `This is the API of a Hackernews Clone`,
+    me(_, __, context) {
+      if(context.currentUser === null) {
+        throw Error('Unauthenticated!');
+      }
+
+      return context.currentUser;
+    },
 
     feed: (_, args, context) => {
       const filterNeedle = args.filterNeedle;
@@ -72,6 +82,16 @@ const resolvers: Resolvers = {
     },
   },
 
+  User: {
+    links(parent, _, context) {
+      return context.prisma.link.findMany({
+        where: {
+          userId: parent.id,
+        },
+      });
+    },
+  },
+
   Comment: {
     link(parent, _, context) {
       if (parent.linkId === null) return null;
@@ -85,6 +105,40 @@ const resolvers: Resolvers = {
   },
 
   Mutation: {
+    async signup(_, args, context) {
+      const password = await bcrypt.hash(args.password, 10);
+
+      const user = await context.prisma.user.create({
+        data: {
+          ...args,
+          password,
+        },
+      });
+
+      const token = jwt.sign({ userId: user.id }, APP_SECRET);
+
+      return { user, token };
+    },
+    async login(_, args, context) {
+      const user = await context.prisma.user.findUnique({
+        where: {
+          email: args.email,
+        },
+      });
+
+      if(!user) {
+        throw Error('No such user found!');
+      }
+
+      const valid = await bcrypt.compare(args.password, user.password);
+      if(!valid) {
+        throw Error('Invalid password!');
+      }
+
+      const token = jwt.sign({ userId: user.id }, APP_SECRET);
+
+      return { token, user };
+    },
     async postLink(_, args, context) {
       const description = args.description;
       if (description.length === 0) {

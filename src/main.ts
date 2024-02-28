@@ -8,8 +8,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import typeDefs from './graphql/types';
 import resolvers from './graphql/resolvers';
 import main from './script';
-import { createContext } from './graphql/context';
-export { type ContextValue } from './graphql/context';
+import { createContext } from './context';
+export { type ContextValue } from './context';
 
 const schema = makeExecutableSchema({
   typeDefs,
