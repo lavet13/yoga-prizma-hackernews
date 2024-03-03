@@ -12,8 +12,19 @@ export default gql`
   type Mutation {
     postLink(url: String!, description: String!): Link!
     postCommentOnLink(linkId: ID!, body: String!): Comment!
-    signup(name: String!, email: String!, password: String!): AuthPayload
-    login(email: String!, password: String!): AuthPayload
+    signup(name: String!, email: String!, password: String!): AuthPayload!
+    login(email: String!, password: String!): AuthPayload!
+    vote(linkId: ID!): Vote
+  }
+
+  type Vote {
+    id: ID!
+    link: Link!
+    user: User!
+  }
+
+  type Subscription {
+    newLink: Link!
   }
 
   type Link {
@@ -22,6 +33,7 @@ export default gql`
     url: String!
     comments: [Comment!]!
     postedBy: User
+    votes: [Vote!]!
   }
 
   type Comment {
@@ -31,8 +43,8 @@ export default gql`
   }
 
   type AuthPayload {
-    token: String
-    user: User
+    token: String!
+    user: User!
   }
 
   type User {

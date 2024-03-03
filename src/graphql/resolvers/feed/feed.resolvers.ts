@@ -80,6 +80,15 @@ const resolvers: Resolvers = {
         },
       });
     },
+    async postedBy(parent, _, context) {
+      if(parent.userId === null) return null;
+
+      return context.prisma.user.findUnique({
+        where: {
+          id: parent.userId,
+        },
+      });
+    }
   },
 
   User: {
@@ -164,6 +173,8 @@ const resolvers: Resolvers = {
         },
       });
 
+      context.pubSub.publish('newLink', { newLink });
+
       return newLink;
     },
 
@@ -210,6 +221,46 @@ const resolvers: Resolvers = {
         });
 
       return comment;
+    },
+    async vote(_, args, context) {
+      if(!context.currentUser) {
+        throw new GraphQLError('You must login in order to use upvote!');
+      }
+
+      const linkId = Number(args.linkId);
+      const userId = context.currentUser?.id;
+
+      const vote = await context.prisma.vote.findUnique({
+        where: {
+          linkId_userId: {
+            linkId,
+            userId,
+          },
+        },
+      });
+
+      if(vote !== null) {
+        throw Error(`Already voted for link: ${args.linkId}`);
+      }
+
+      const newVote = await context.prisma.vote.create({
+        data: {
+          linkId,
+          userId,
+        },
+      });
+
+      context.pubSub.publish('newVote', { newVote });
+
+      return newVote;
+    }
+  },
+
+  Subscription: {
+    newLink: {
+      subscribe(parent, _, context) {
+        return context.pubSub.subscribe('newLink');
+      },
     },
   },
 };
