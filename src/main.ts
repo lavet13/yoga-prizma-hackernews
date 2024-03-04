@@ -19,9 +19,9 @@ const schema = makeExecutableSchema({
 async function bootstrap() {
   const app = express();
 
-  // console.log({ endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT });
-  // console.log({ importEnv: import.meta.env });
-  // console.log({ processEnv: process.env });
+  console.log({ endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT });
+  console.log({ importEnv: import.meta.env });
+  console.log({ processEnv: process.env });
 
   const yoga = createYoga({
     schema,
@@ -42,6 +42,7 @@ async function bootstrap() {
   // await main();
 
   if (import.meta.env.PROD) {
+    console.log('help?');
     app.listen(import.meta.env.VITE_PORT, () => {
       console.log(
         `🚀 Query endpoint ready at http://localhost:${import.meta.env.VITE_PORT

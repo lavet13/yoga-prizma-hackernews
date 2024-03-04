@@ -7,16 +7,18 @@ import { applyConstraints } from '../../../utils/resolvers/applyConstraints';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { APP_SECRET } from '../../../auth';
+import { ResolversComposerMapping, composeResolvers } from '@graphql-tools/resolvers-composition';
+import { isAuthenticated } from '../../composition/auth';
 
 const resolvers: Resolvers = {
   Query: {
     info: () => `This is the API of a Hackernews Clone`,
     me(_, __, context) {
-      if(context.currentUser === null) {
-        throw Error('Unauthenticated!');
-      }
-
-      return context.currentUser;
+      return context.prisma.user.findUnique({
+        where: {
+          id: context.me!.id,
+        },
+      });
     },
 
     feed: (_, args, context) => {
@@ -223,12 +225,8 @@ const resolvers: Resolvers = {
       return comment;
     },
     async vote(_, args, context) {
-      if(!context.currentUser) {
-        throw new GraphQLError('You must login in order to use upvote!');
-      }
-
       const linkId = Number(args.linkId);
-      const userId = context.currentUser?.id;
+      const userId = context.me!.id;
 
       const vote = await context.prisma.vote.findUnique({
         where: {
@@ -265,4 +263,11 @@ const resolvers: Resolvers = {
   },
 };
 
-export default resolvers;
+const resolversComposition: ResolversComposerMapping<Resolvers> = {
+  'Query.me': [isAuthenticated()],
+  'Mutation.postLink': [isAuthenticated()],
+  'Mutation.postCommentOnLink': [isAuthenticated()],
+  'Mutation.vote': [isAuthenticated()],
+};
+
+export default composeResolvers(resolvers, resolversComposition);

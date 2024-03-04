@@ -1,12 +1,13 @@
 import { YogaInitialContext } from 'graphql-yoga';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { authenticateUser } from './auth';
 import { pubSub } from './pubsub';
+import jwt from 'jsonwebtoken';
 // import { inspect } from './utils/debug/inspect';
 
 export type ContextValue = {
   prisma: PrismaClient;
-  currentUser: User | null;
+  me: jwt.JwtPayload | null;
   pubSub: typeof pubSub;
 };
 
@@ -17,7 +18,7 @@ export async function createContext(
 ): Promise<ContextValue> {
   return {
     prisma,
-    currentUser: await authenticateUser(prisma, initialContext.request),
+    me: authenticateUser(initialContext.request),
     pubSub,
   };
 }

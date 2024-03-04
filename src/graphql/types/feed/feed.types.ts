@@ -6,7 +6,7 @@ export default gql`
     feed(filterNeedle: String, skip: Int, take: Int): [Link!]!
     comment(id: ID!): Comment
     link(id: ID!): Link
-    me: User!
+    me: User
   }
 
   type Mutation {

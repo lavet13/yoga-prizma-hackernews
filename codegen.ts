@@ -15,6 +15,7 @@ const config: CodegenConfig = {
 
   config: {
     mappers: {
+      Vote: '../../../node_modules/.prisma/client#Vote as VoteModel',
       Link: '../../../node_modules/.prisma/client#Link as LinkModel',
       Comment: '../../../node_modules/.prisma/client#Comment as CommentModel',
       User: '../../../node_modules/.prisma/client#User as UserModel',
