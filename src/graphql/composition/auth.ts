@@ -9,7 +9,7 @@ export const isAuthenticated =
   (): ResolversComposition<AuthenticatedResolver> =>
   next =>
   (parent, args, context, info) => {
-    if(context.me === null) {
+    if (!context.me) {
       throw new GraphQLError('You are not authenticated!');
     }
 

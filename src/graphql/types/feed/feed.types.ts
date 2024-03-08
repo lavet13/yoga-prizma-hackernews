@@ -15,6 +15,7 @@ export default gql`
     signup(name: String!, email: String!, password: String!): AuthPayload!
     login(email: String!, password: String!): AuthPayload!
     vote(linkId: ID!): Vote
+    unvote(linkId: ID!): Vote
   }
 
   type Vote {
@@ -25,6 +26,7 @@ export default gql`
 
   type Subscription {
     newLink: Link!
+    newVote: Vote!
   }
 
   type Link {
@@ -44,7 +46,6 @@ export default gql`
 
   type AuthPayload {
     token: String!
-    user: User!
   }
 
   type User {

@@ -9,7 +9,6 @@ import typeDefs from './graphql/types';
 import resolvers from './graphql/resolvers';
 import main from './script';
 import { createContext } from './context';
-export { type ContextValue } from './context';
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -19,16 +18,16 @@ const schema = makeExecutableSchema({
 async function bootstrap() {
   const app = express();
 
-  console.log({ endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT });
-  console.log({ importEnv: import.meta.env });
-  console.log({ processEnv: process.env });
+  // console.log({ dev: import.meta.env.DEV, prod: import.meta.env.PROD });
+  // console.log({ importEnv: import.meta.env });
+  // console.log({ processEnv: process.env });
 
   const yoga = createYoga({
     schema,
     context: createContext,
     graphqlEndpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT,
-    graphiql: import.meta.env.MODE === 'development',
-    landingPage: false,
+    graphiql: import.meta.env.DEV,
+    landingPage: import.meta.env.PROD,
     plugins: [
       // useResponseCache({
       //   // global cache
@@ -46,7 +45,7 @@ async function bootstrap() {
     app.listen(import.meta.env.VITE_PORT, () => {
       console.log(
         `🚀 Query endpoint ready at http://localhost:${import.meta.env.VITE_PORT
-        }`
+        }${import.meta.env.VITE_GRAPHQL_ENDPOINT}`
       );
     });
   }

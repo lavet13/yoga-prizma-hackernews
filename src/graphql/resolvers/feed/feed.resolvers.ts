@@ -6,8 +6,10 @@ import { Prisma } from '@prisma/client';
 import { applyConstraints } from '../../../utils/resolvers/applyConstraints';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { APP_SECRET } from '../../../auth';
-import { ResolversComposerMapping, composeResolvers } from '@graphql-tools/resolvers-composition';
+import {
+  ResolversComposerMapping,
+  composeResolvers,
+} from '@graphql-tools/resolvers-composition';
 import { isAuthenticated } from '../../composition/auth';
 
 const resolvers: Resolvers = {
@@ -83,14 +85,38 @@ const resolvers: Resolvers = {
       });
     },
     async postedBy(parent, _, context) {
-      if(parent.userId === null) return null;
+      if (parent.userId === null) return null;
 
       return context.prisma.user.findUnique({
         where: {
           id: parent.userId,
         },
       });
-    }
+    },
+    async votes(parent, _, context) {
+      return context.prisma.vote.findMany({
+        where: {
+          linkId: parent.id,
+        },
+      });
+    },
+  },
+
+  Vote: {
+    link(parent, _, context) {
+      return context.prisma.link.findUniqueOrThrow({
+        where: {
+          id: parent.linkId,
+        },
+      });
+    },
+    user(parent, _, context) {
+      return context.prisma.user.findUniqueOrThrow({
+        where: {
+          id: parent.userId,
+        },
+      });
+    },
   },
 
   User: {
@@ -126,9 +152,9 @@ const resolvers: Resolvers = {
         },
       });
 
-      const token = jwt.sign({ userId: user.id }, APP_SECRET);
+      const token = jwt.sign({ userId: user.id }, import.meta.env.VITE_SECRET);
 
-      return { user, token };
+      return { token };
     },
     async login(_, args, context) {
       const user = await context.prisma.user.findUnique({
@@ -137,18 +163,18 @@ const resolvers: Resolvers = {
         },
       });
 
-      if(!user) {
+      if (!user) {
         throw Error('No such user found!');
       }
 
       const valid = await bcrypt.compare(args.password, user.password);
-      if(!valid) {
+      if (!valid) {
         throw Error('Invalid password!');
       }
 
-      const token = jwt.sign({ userId: user.id }, APP_SECRET);
+      const token = jwt.sign({ userId: user.id }, import.meta.env.VITE_SECRET);
 
-      return { token, user };
+      return { token };
     },
     async postLink(_, args, context) {
       const description = args.description;
@@ -172,6 +198,11 @@ const resolvers: Resolvers = {
         data: {
           url: url!.href,
           description,
+          User: {
+            connect: {
+              id: context.me!.userId,
+            },
+          },
         },
       });
 
@@ -214,7 +245,7 @@ const resolvers: Resolvers = {
           ) {
             return Promise.reject(
               new GraphQLError(
-                `Cannot post comment on non-existing link with id '${args.linkId}'.`,
+                `Cannot post comment on non-existing link with id \`${args.linkId}\`.`,
               ),
             );
           }
@@ -224,21 +255,54 @@ const resolvers: Resolvers = {
 
       return comment;
     },
+    async unvote(_, args, context) {
+      const linkId = Number(args.linkId);
+      const userId = context.me!.userId;
+
+      const deletedVote = await context.prisma.vote
+        .delete({
+          where: {
+            linkId_userId: {
+              userId,
+              linkId,
+            },
+          },
+        })
+        .catch((err: unknown) => {
+          if (
+            err instanceof PrismaClientKnownRequestError &&
+            err.code === 'P2025'
+          ) {
+            return Promise.reject(
+              new GraphQLError(
+                'Record was already deleted or cannot be found!',
+              ),
+            );
+          }
+
+          return Promise.reject(err);
+        });
+
+      return deletedVote;
+    },
     async vote(_, args, context) {
       const linkId = Number(args.linkId);
-      const userId = context.me!.id;
+      const userId = context.me!.userId;
+      console.log({ linkId, userId });
 
       const vote = await context.prisma.vote.findUnique({
         where: {
           linkId_userId: {
-            linkId,
             userId,
+            linkId,
           },
         },
       });
 
-      if(vote !== null) {
-        throw Error(`Already voted for link: ${args.linkId}`);
+      if (vote !== null) {
+        throw new GraphQLError(
+          `Already voted for link with id \`${args.linkId}\``,
+        );
       }
 
       const newVote = await context.prisma.vote.create({
@@ -251,13 +315,18 @@ const resolvers: Resolvers = {
       context.pubSub.publish('newVote', { newVote });
 
       return newVote;
-    }
+    },
   },
 
   Subscription: {
     newLink: {
-      subscribe(parent, _, context) {
+      subscribe(_, __, context) {
         return context.pubSub.subscribe('newLink');
+      },
+    },
+    newVote: {
+      subscribe(_, __, context) {
+        return context.pubSub.subscribe('newVote');
       },
     },
   },
@@ -268,6 +337,7 @@ const resolversComposition: ResolversComposerMapping<Resolvers> = {
   'Mutation.postLink': [isAuthenticated()],
   'Mutation.postCommentOnLink': [isAuthenticated()],
   'Mutation.vote': [isAuthenticated()],
+  'Mutation.unvote': [isAuthenticated()],
 };
 
 export default composeResolvers(resolvers, resolversComposition);
